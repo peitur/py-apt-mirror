@@ -1,2 +1,2 @@
-# smkaptmconfig
-Simplified Make APT mirror config files 
+# py-apt-mirror
+Simplified Make APT mirror util, in python 3. 
