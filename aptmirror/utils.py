@@ -8,8 +8,8 @@ import json
 from pprint import pprint
 
 
-def temp_dir( root="/tmp" ):
-    return "%s/py_%s" % ( root, random_string( 6 ) )
+def temp_dir( root="/tmp", prefix="py" ):
+    return "%s/%s_%s" % ( root, prefix, random_string( 6 )  )
 
 def random_string( length ):
     return ''.join(random.SystemRandom().choice( string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range( length ))
