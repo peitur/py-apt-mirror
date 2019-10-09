@@ -7,6 +7,10 @@ import json
 
 from pprint import pprint
 
+def is_type( o, t ):
+    if type( o ).__name__ == t:
+        return True
+    return False
 
 def temp_dir( root="/tmp", prefix="py" ):
     return "%s/%s_%s" % ( root, prefix, random_string( 6 )  )
