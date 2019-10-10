@@ -2,6 +2,7 @@
 
 import os, re, sys
 import pathlib
+import json
 
 import aptmirror.validate
 import aptmirror.utils
@@ -35,25 +36,25 @@ DEFAULT_CONFIG={
 
 DEFAULT_ARCH="amd64"
 
-def generate_src_component_links( uri, distribution, components=list() ):
+def generate_src_component_links( uri, distribution, components=list(), **opt ):
     links = list()
 
-    $url = "%s/dists/%s" % ( uri, distribution )
+    url = "%s/dists/%s" % ( uri, distribution )
 
     links.append( "%s/InRelease" % ( url ) )
     links.append( "%s/Release" % ( url ) )
     links.append( "%s/Release.gpg" % ( url ) )
 
     for comp in components:
-        links.append( "%s/%s//source/Release" % ( url, comp ) )
-        links.append( "%s/%s//source/Sources.gz" % ( url, comp ) )
-        links.append( "%s/%s//source/Sources.bz2" % ( url, comp ) )
-        links.append( "%s/%s//source/Sources.xz" % ( url, comp ) )
+        links.append( "%s/%s/source/Release" % ( url, comp ) )
+        links.append( "%s/%s/source/Sources.gz" % ( url, comp ) )
+        links.append( "%s/%s/source/Sources.bz2" % ( url, comp ) )
+        links.append( "%s/%s/source/Sources.xz" % ( url, comp ) )
 
     return links.copy()
 
 
-def generate_src_noncomponent_links( uri, distribution ):
+def generate_src_noncomponent_links( uri, distribution, **opt ):
     links = list()
     links.append( "%s/%s/Release" % ( uri, distribution ) )
     links.append( "%s/%s/Release.gpg" % ( uri, distribution ) )
@@ -63,11 +64,49 @@ def generate_src_noncomponent_links( uri, distribution ):
     return links.copy()
 
 
-def generate_binary_component_links( uri, distribution, components=list() ):
-    pass
+def generate_binary_component_links( arch, uri, distribution, components=list(), **opt ):
+    links = list()
+    contents = False
 
-def generate_binary_noncomponent_links( uri, distribution, components=list() ):
-    pass
+    if 'contents' in opt and opt['contents'] in (True, False):
+        contents = opt['contents']
+
+    url = "%s/dists/%s" % ( uri, distribution )
+
+    links.append( "%s/InRelease" % ( url ) )
+    links.append( "%s/Release" % ( url ) )
+    links.append( "%s/Release.gpg" % ( url ) )
+
+    if contents:
+        links.append( "%s/Contents-%s.gz" % ( url, arch ) )
+        links.append( "%s/Contents-%s.bz2" % ( url, arch ) )
+        links.append( "%s/Contents-%s.xz" % ( url, arch ) )
+
+    for comp in components:
+        links.append( "%s/%s/binary-%s/Release" % ( url, comp, arch ) )
+        links.append( "%s/%s/binary-%s/Packages.gz" % ( url, comp, arch ) )
+        links.append( "%s/%s/binary-%s/Packages.bz2" % ( url, comp, arch ) )
+        links.append( "%s/%s/binary-%s/Packages.xz" % ( url, comp, arch ) )
+        links.append( "%s/%s/i18n/Index" % ( url, comp ) )
+
+        if contents:
+            links.append( "%s/%s/Contents-%s.gz" % ( url, comp, arch ) )
+            links.append( "%s/%s/Contents-%s.bz2" % ( url, comp, arch ) )
+            links.append( "%s/%s/Contents-%s.xz" % ( url, comp, arch ) )
+
+    return links
+
+def generate_binary_noncomponent_links( uri, distribution, **opt ):
+    links = list()
+    links.append( "%s/%s/Release" % ( uri, distribution ) )
+    links.append( "%s/%s/Release.gpg" % ( uri, distribution ) )
+    links.append( "%s/%s/Packages.gz" % ( uri, distribution ) )
+    links.append( "%s/%s/Packages.bz2" % ( uri, distribution ) )
+    links.append( "%s/%s/Packages.xz" % ( uri, distribution ) )
+    return links.copy()
+
+
+
 
 
 class MirrorCleanItem( object ):
@@ -81,9 +120,21 @@ class MirrorCleanItem( object ):
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
 
+        self._parse()
+
+    def __str__( self ):
+        return json.dumps( self.__dict__() )
+
+    def __dict__( self ):
+        return { "clean": self._clean, "uri": self._uri }
+
+    def _fields( self ):
+        return [ x.rstrip().lstrip() for x in re.split( r"\s+", self._line ) ]
+
     def _parse( self ):
 
-        fields = re.split( r"\s+", self._line )
+        fields = self._fields()
+
         if fields[0] == "clean":
             self._clean = True
             self._uri = fields[1]
@@ -95,7 +146,7 @@ class MirrorCleanItem( object ):
         else:
             raise RuntimeError( "Bad cleanup reference" )
 
-        return { "clean": self._clean, "uri": self._uri }
+        return self.__dict__()
 
     def parse( self ):
         return self._parse()
@@ -107,20 +158,42 @@ class MirrorCleanItem( object ):
         return self._uri
 
 
+
+
+
+
+
 class MirrorItem( object ):
 
     def __init__( self, line, **opt ):
         self._line = line.lstrip().rstrip()
         self._debug = False
 
+        self._type = "binary"
         self._arch = list()
         self._uri = None
         self._options = dict()
         self._suite = None
         self._components = list()
 
+        self._contents = True
+
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
+
+        if 'contents' in opt and opt['contents'] in (True, False):
+            self._contents = opt['contents']
+
+        self._parse_mirror()
+
+    def __str__( self ):
+        return json.dumps( self.__dict__() )
+
+    def __dict__( self ):
+        return { "type": self._type, "arch": self._arch.copy(), "options": self._options.copy(), "uri": self._uri, "suite": self._suite, "components": self._components.copy() }
+
+    def _fields( self ):
+        return [ x.rstrip().lstrip() for x in re.split( r"\s+", self._line ) ]
 
 
     def _parse_mirror_arch( self, t ):
@@ -143,7 +216,10 @@ class MirrorItem( object ):
 
 
     def _parse_mirror( self ):
-        fields = re.split( r"\s+", self._line )
+        fields = [ x.rstrip().lstrip() for x in re.split( r"\s+", self._line ) ]
+
+        if re.match( r"deb-src", fields[0] ):
+            self._type = "source"
 
         m = re.match( r".*\[(.+)\].*", self._line )
         if m:
@@ -158,7 +234,31 @@ class MirrorItem( object ):
         self._suite = fields.pop(0)
         self._components = fields.copy()
 
-        return { "arch": self._arch.copy(), "options": self._options.copy(), "uri": self._uri, "suite": self._suite, "components": self._components.copy() }
+        return self.__dict__()
+
+    def get_index_links( self ):
+        links = list()
+        data = self._parse_mirror()
+
+        if self._type == "binary":
+            for a in self._arch:
+
+                if len( self._components ) > 0:
+                    links += generate_binary_component_links( a, self._uri, self._suite, self._components )
+                else:
+                    links += generate_binary_noncomponent_links( a, self._uri, self._suite )
+
+
+        elif self._type == "source":
+            if len( self._components ) > 0:
+                links += generate_src_component_links( self._uri, self._suite, self._components )
+            else:
+                links += generate_src_noncomponent_links( self._uri, self._suite )
+
+        else:
+            raise AttributeError("No such type %s" % (self._type ) )
+
+        return links
 
     def get_arch( self ):
         return self._arch.copy()
@@ -175,8 +275,17 @@ class MirrorItem( object ):
     def get_options( self ):
         return self._options.copy()
 
+    def get_type( self ):
+        return self._type
+
+    def get_fields( self ):
+        return self._fields()
+
     def parse( self ):
         return self._parse_mirror()
+
+
+
 
 
 
@@ -213,14 +322,15 @@ class MirrorConfig( object ):
         data = aptmirror.utils.load_file( self._filename )
         for line in data:
             if len( line ) > 0:
-                fields = re.split( "\s+", line )
+                fields = [ x.rstrip().lstrip() for x in re.split( r"\s+", line ) ]
                 if re.match( r"\s*set", fields[0] ):
                     self._parse_set( fields )
                 elif re.match( r"\s*deb.*", fields[0] ):
-                    self._mirrors.append( MirrorItem( line, debug=self._debug ).parse() )
+                    m = MirrorItem( line, debug=self._debug )
+                    self._mirrors.append( m )
                 elif re.match( r"\s*(clean|skip-clean).*", fields[0] ):
-                    self._cleanups.append( MirrorCleanItem( line, debug=self._debug ).parse() )
-
+                    m = MirrorCleanItem( line, debug=self._debug )
+                    self._cleanups.append( m )
 
     def _apply_variables( self ):
         for k1 in self._config:

@@ -28,6 +28,8 @@ class Runner( object ):
             self._mirror_config = aptmirror.mirror.MirrorConfig( self._args[1] )
             pprint( self._mirror_config.get_config() )
             pprint( self._mirror_config.get_mirrors() )
+            for m in self._mirror_config.get_mirrors():
+                pprint( m.get_index_links() )
 
     def get_options( ):
         return "<mirror.list>"
