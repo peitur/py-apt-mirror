@@ -35,6 +35,41 @@ DEFAULT_CONFIG={
 
 DEFAULT_ARCH="amd64"
 
+def generate_src_component_links( uri, distribution, components=list() ):
+    links = list()
+
+    $url = "%s/dists/%s" % ( uri, distribution )
+
+    links.append( "%s/InRelease" % ( url ) )
+    links.append( "%s/Release" % ( url ) )
+    links.append( "%s/Release.gpg" % ( url ) )
+
+    for comp in components:
+        links.append( "%s/%s//source/Release" % ( url, comp ) )
+        links.append( "%s/%s//source/Sources.gz" % ( url, comp ) )
+        links.append( "%s/%s//source/Sources.bz2" % ( url, comp ) )
+        links.append( "%s/%s//source/Sources.xz" % ( url, comp ) )
+
+    return links.copy()
+
+
+def generate_src_noncomponent_links( uri, distribution ):
+    links = list()
+    links.append( "%s/%s/Release" % ( uri, distribution ) )
+    links.append( "%s/%s/Release.gpg" % ( uri, distribution ) )
+    links.append( "%s/%s/Sources.gz" % ( uri, distribution ) )
+    links.append( "%s/%s/Sources.bz2" % ( uri, distribution ) )
+    links.append( "%s/%s/Sources.xz" % ( uri, distribution ) )
+    return links.copy()
+
+
+def generate_binary_component_links( uri, distribution, components=list() ):
+    pass
+
+def generate_binary_noncomponent_links( uri, distribution, components=list() ):
+    pass
+
+
 class MirrorCleanItem( object ):
     def __init__( self, line, **opt ):
         self._line = line.lstrip().rstrip()

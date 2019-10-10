@@ -3,7 +3,9 @@
 import os, re, sys
 import urllib
 
-def download_file( proj, url_filename, local_filename, **opt ):
+
+
+def download_file( url_filename, local_filename,proxy={}, **opt ):
 
     x_size = 0
     l_size = 0
