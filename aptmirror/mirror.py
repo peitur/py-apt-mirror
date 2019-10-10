@@ -5,6 +5,7 @@ import pathlib
 
 import aptmirror.validate
 import aptmirror.utils
+import aptmirror.command
 
 from pprint import pprint
 
@@ -34,10 +35,47 @@ DEFAULT_CONFIG={
 
 DEFAULT_ARCH="amd64"
 
+class MirrorCleanItem( object ):
+    def __init__( self, line, **opt ):
+        self._line = line.lstrip().rstrip()
+        self._debug = False
+
+        self._clean = False
+        self._uri = None
+
+        if 'debug' in opt and opt['debug'] in (True, False):
+            self._debug = opt['debug']
+
+    def _parse( self ):
+
+        fields = re.split( r"\s+", self._line )
+        if fields[0] == "clean":
+            self._clean = True
+            self._uri = fields[1]
+
+        elif fields[0] == "clean":
+            self._clean = False
+            if len( fields ) > 1:
+                self._uri = fields[1]
+        else:
+            raise RuntimeError( "Bad cleanup reference" )
+
+        return { "clean": self._clean, "uri": self._uri }
+
+    def parse( self ):
+        return self._parse()
+
+    def get_clean( self ):
+        return self._clean
+
+    def get_uri( self ):
+        return self._uri
+
+
 class MirrorItem( object ):
 
     def __init__( self, line, **opt ):
-        self._line = line
+        self._line = line.lstrip().rstrip()
         self._debug = False
 
         self._arch = list()
@@ -111,7 +149,7 @@ class MirrorItem( object ):
 class MirrorConfig( object ):
 
     def __init__( self, filename, **opt ):
-        self._config = DEFAULT_CONFIG
+        self._config = DEFAULT_CONFIG.copy()
         self._mirrors = list()
         self._cleanups = list()
 
@@ -136,9 +174,6 @@ class MirrorConfig( object ):
                 self._config[ fields[1] ] = fields[2]
 
 
-    def _parse_clear( self, fields ):
-        pass
-
     def _parse( self ):
         data = aptmirror.utils.load_file( self._filename )
         for line in data:
@@ -148,6 +183,8 @@ class MirrorConfig( object ):
                     self._parse_set( fields )
                 elif re.match( r"\s*deb.*", fields[0] ):
                     self._mirrors.append( MirrorItem( line, debug=self._debug ).parse() )
+                elif re.match( r"\s*(clean|skip-clean).*", fields[0] ):
+                    self._cleanups.append( MirrorCleanItem( line, debug=self._debug ).parse() )
 
 
     def _apply_variables( self ):
@@ -162,6 +199,9 @@ class MirrorConfig( object ):
 
     def get_mirrors( self ):
         return self._mirrors.copy()
+
+    def run_postmirror( self ):
+        pass
 
 if __name__ == "__main__":
     m = MirrorConfig( "../test/mirror.list" )

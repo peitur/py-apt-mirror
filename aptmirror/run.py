@@ -26,7 +26,7 @@ class Runner( object ):
     def run( self ):
         if len( self._args ) > 1:
             self._mirror_config = aptmirror.mirror.MirrorConfig( self._args[1] )
-            pprint( self._mirror_config.get_config() )            
+            pprint( self._mirror_config.get_config() )
             pprint( self._mirror_config.get_mirrors() )
 
     def get_options( ):
