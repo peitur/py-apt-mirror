@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import os, re, sys
-
+import urllib
 
 def download_file( proj, url_filename, local_filename, **opt ):
+
     x_size = 0
     l_size = 0
     r_size = 0
@@ -11,6 +12,8 @@ def download_file( proj, url_filename, local_filename, **opt ):
     overwrite = False
     timeout = 10
     debug = False
+
+    proxies = urllib.request.getproxies()
 
     if 'debug' in opt: debug = opt['debug']
     if 'bsize' in opt: bsize = opt['bsize']
@@ -22,7 +25,7 @@ def download_file( proj, url_filename, local_filename, **opt ):
     if Path( local_filename ).exists():
         l_size = Path( local_filename ).stat().st_size
 
-    r = requests.get( url_filename, timeout=timeout, stream=True)
+    r = requests.get( url_filename, timeout=timeout, stream=True, proxies=proxies )
     if 'content-length' in r.headers:
         r_size = r.headers['content-length']
 
@@ -39,11 +42,6 @@ def download_file( proj, url_filename, local_filename, **opt ):
                 if chunk: # filter out keep-alive new chunks
                     x_size += len( chunk )
                     f.write(chunk)
-                    print("# [ %s ] [ %s / %s ] --> %s" % ( proj, x_size, r_size, local_filename ), end="\r" )
-        print("")
-    else:
-        print("# [ %s ] [ skip ] --> %s " % ( proj, local_filename ) )
-
     r.close()
 
     return local_filename

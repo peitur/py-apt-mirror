@@ -25,38 +25,30 @@ DEFAULT_CONFIG={
     "no_check_certificate": 0,
     "unlink": 0,
     "postmirror_script": '$var_path/postmirror.sh',
-    "use_proxy": 'off',
-    "http_proxy": '',
-    "https_proxy": '',
-    "proxy_user": '',
-    "proxy_password": ''
+    "use_proxy": False,
+    "http_proxy": None,
+    "https_proxy": None,
+    "proxy_user": None,
+    "proxy_password": None
 }
 
 DEFAULT_ARCH="amd64"
 
-class MirrorConfig( object ):
+class MirrorItem( object ):
 
-    def __init__( self, filename, **opt ):
-        self._config = DEFAULT_CONFIG
-        self._mirrors = list()
-        self._filename = filename
+    def __init__( self, line, **opt ):
+        self._line = line
         self._debug = False
+
+        self._arch = list()
+        self._uri = None
+        self._options = dict()
+        self._suite = None
+        self._components = list()
+
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
 
-        cf = pathlib.Path( self._filename )
-        if not cf.exists():
-            raise OSError("No such file %s" % ( self._filename ) )
-
-        self._parse()
-        self._apply_variables()
-
-    def _parse_set( self, fields ):
-        if fields[1] in self._config and len( fields ) == 3:
-            if aptmirror.utils.is_type( self._config[ fields[1] ], "int" ):
-                self._config[ fields[1] ] = int( fields[2] )
-            else:
-                self._config[ fields[1] ] = fields[2]
 
     def _parse_mirror_arch( self, t ):
         if re.match( r"\s*deb$", t ):
@@ -74,24 +66,75 @@ class MirrorConfig( object ):
                 data[ d[0] ] = re.split( ",", d[1] )
             else:
                 data[ d[0] ] = d[1]
-        return data
+        return data.copy()
 
 
-    def _parse_mirror( self, fields ):
-        data = dict()
+    def _parse_mirror( self ):
+        fields = re.split( r"\s+", self._line )
 
-        data["options"] = None
-        m = re.match( r".*\[(.+)\].*", " ".join( fields ) )
+        m = re.match( r".*\[(.+)\].*", self._line )
         if m:
-             data["options"] = self._parse_options( m.group(1).lstrip().rstrip() )
-             fields = re.split( r"\s+", re.sub( r"\[(.+)\]", "", " ".join( fields ) ) )
-        
-        data["arch"] = self._parse_mirror_arch( fields.pop(0) )
-        data["url"] = fields.pop(0)
-        data["suite"] = fields.pop(0)
-        data["components"] = fields.copy()
+             self._options = self._parse_options( m.group(1).lstrip().rstrip() )
+             fields = re.split( r"\s+", re.sub( r"\[(.+)\]", "", self._line ) )
 
-        return data
+        self._arch = [ self._parse_mirror_arch( fields.pop(0) ) ]
+        if len( self._options ) > 0:
+            self._arch = self._options['arch']
+
+        self._uri = fields.pop(0)
+        self._suite = fields.pop(0)
+        self._components = fields.copy()
+
+        return { "arch": self._arch.copy(), "options": self._options.copy(), "uri": self._uri, "suite": self._suite, "components": self._components.copy() }
+
+    def get_arch( self ):
+        return self._arch.copy()
+
+    def get_suite( self ):
+        return self._suite
+
+    def get_uri( self ):
+        return self._uri
+
+    def get_components( self ):
+        return self._components.copy()
+
+    def get_options( self ):
+        return self._options.copy()
+
+    def parse( self ):
+        return self._parse_mirror()
+
+
+
+
+class MirrorConfig( object ):
+
+    def __init__( self, filename, **opt ):
+        self._config = DEFAULT_CONFIG
+        self._mirrors = list()
+        self._cleanups = list()
+
+        self._filename = filename
+        self._debug = False
+
+        if 'debug' in opt and opt['debug'] in (True, False):
+            self._debug = opt['debug']
+
+        cf = pathlib.Path( self._filename )
+        if not cf.exists():
+            raise OSError("No such file %s" % ( self._filename ) )
+
+        self._parse()
+        self._apply_variables()
+
+    def _parse_set( self, fields ):
+        if fields[1] in self._config and len( fields ) == 3:
+            if aptmirror.utils.is_type( self._config[ fields[1] ], "int" ):
+                self._config[ fields[1] ] = int( fields[2] )
+            else:
+                self._config[ fields[1] ] = fields[2]
+
 
     def _parse_clear( self, fields ):
         pass
@@ -104,7 +147,7 @@ class MirrorConfig( object ):
                 if re.match( r"\s*set", fields[0] ):
                     self._parse_set( fields )
                 elif re.match( r"\s*deb.*", fields[0] ):
-                    self._mirrors.append( self._parse_mirror( fields ) )
+                    self._mirrors.append( MirrorItem( line, debug=self._debug ).parse() )
 
 
     def _apply_variables( self ):
