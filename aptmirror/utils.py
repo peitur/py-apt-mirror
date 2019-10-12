@@ -4,6 +4,7 @@ import os, re, sys
 import tarfile, zipfile, bz2
 import random, string
 import json
+import pathlib
 
 from pprint import pprint
 
@@ -17,6 +18,19 @@ def temp_dir( root="/tmp", prefix="py" ):
 
 def random_string( length ):
     return ''.join(random.SystemRandom().choice( string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range( length ))
+
+def dir_tree( path, rx=r".*", **opt ):
+    res = list()
+
+    p = pathlib.Path( path )
+    for c in p.iterdir():
+        if c.is_dir():
+            res += list( dir_tree( "%s/%s" % ( p, c.name ), rx, **opt ) )
+        else:
+            if re.match( rx, c.name ):
+                res.append( "%s/%s" % ( p, c.name ) )
+
+    return res
 
 
 def unpack_gz( filename,  ):
@@ -71,4 +85,5 @@ def write_file( filename, data ):
 
 
 if __name__ == "__main__":
-    pass
+    pprint( dir_tree( ".." ) )
+    pprint( dir_tree( "..", r".*\.py$" ) )
