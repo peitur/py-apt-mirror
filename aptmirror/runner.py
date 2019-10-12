@@ -12,7 +12,7 @@ import aptmirror.mirror
 
 OPTIONS={}
 
-class Runner( object ):
+class MainRunner( object ):
 
     def __init__( self, args, **opt ):
         self._args = args
@@ -24,13 +24,16 @@ class Runner( object ):
 
 
     def run( self ):
+
         if len( self._args ) > 1:
             self._mirror_config = aptmirror.mirror.MirrorConfig( self._args[1] )
             pprint( self._mirror_config.get_config() )
             pprint( self._mirror_config.get_mirrors() )
             for m in self._mirror_config.get_mirrors():
                 pprint( m.get_index_links() )
-
+        else:
+            raise AttributeError("No input file")
+            
     def get_options( ):
         return "<mirror.list>"
 

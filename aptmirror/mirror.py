@@ -6,6 +6,7 @@ import json
 
 import aptmirror.validate
 import aptmirror.utils
+import aptmirror.local
 import aptmirror.command
 
 from pprint import pprint
@@ -319,7 +320,7 @@ class MirrorConfig( object ):
 
 
     def _parse( self ):
-        data = aptmirror.utils.load_file( self._filename )
+        data = aptmirror.local.load_file( self._filename )
         for line in data:
             if len( line ) > 0:
                 fields = [ x.rstrip().lstrip() for x in re.split( r"\s+", line ) ]
@@ -331,6 +332,7 @@ class MirrorConfig( object ):
                 elif re.match( r"\s*(clean|skip-clean).*", fields[0] ):
                     m = MirrorCleanItem( line, debug=self._debug )
                     self._cleanups.append( m )
+
 
     def _apply_variables( self ):
         for k1 in self._config:

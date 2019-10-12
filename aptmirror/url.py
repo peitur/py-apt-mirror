@@ -3,7 +3,8 @@
 import os, re, sys
 import urllib
 
-
+def download_file_wget( source, target, **options ):
+    pass
 
 def download_file( url_filename, local_filename,proxy={}, **opt ):
 

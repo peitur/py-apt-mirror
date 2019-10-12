@@ -5,7 +5,7 @@ import os, re, sys
 from pprint import pprint
 
 import aptmirror
-import aptmirror.run
+import aptmirror.runner
 
 
 def print_help( ):
@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     if len( sys.argv ) > 1:
         try:
-            aptmirror.run.Runner( sys.argv ).run()
+            aptmirror.runner.MainRunner( sys.argv ).run()
         except Exception as e:
             pprint( e )
     else:
