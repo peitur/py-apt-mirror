@@ -23,10 +23,10 @@ DEFAULT_CONFIG={
     "skel_path": '$base_path/skel',
     "var_path": '$base_path/var',
     "cleanscript": '$var_path/clean.sh',
-    "run_postmirror": 1,
-    "auth_no_challenge": 0,
-    "no_check_certificate": 0,
-    "unlink": 0,
+    "run_postmirror": True,
+    "auth_no_challenge": False,
+    "no_check_certificate": False,
+    "unlink": False,
     "postmirror_script": '$var_path/postmirror.sh',
     "use_proxy": False,
     "http_proxy": None,
@@ -238,28 +238,43 @@ class MirrorItem( object ):
         return self.__dict__()
 
     def get_index_links( self ):
-        links = list()
+        links = dict()
         data = self._parse_mirror()
 
         if self._type == "binary":
             for a in self._arch:
 
                 if len( self._components ) > 0:
-                    links += generate_binary_component_links( a, self._uri, self._suite, self._components )
+                    urls = generate_binary_component_links( a, self._uri, self._suite, self._components )
+                    for url in urls:
+                        path = "%s/%s" % ( self._suite )
+                        links[ url ] = path
                 else:
-                    links += generate_binary_noncomponent_links( a, self._uri, self._suite )
+                    urls = generate_binary_noncomponent_links( a, self._uri, self._suite )
+                    for url in urls:
+                        path = "%s/" % ( self._suite )
+                        links[ url ] = path
 
 
         elif self._type == "source":
             if len( self._components ) > 0:
-                links += generate_src_component_links( self._uri, self._suite, self._components )
+                urls = generate_src_component_links( self._uri, self._suite, self._components )
+                for url in urls:
+                    path = "%s/" % ( self._suite )
+                    links[ url ] = path
+
             else:
-                links += generate_src_noncomponent_links( self._uri, self._suite )
+                urls = generate_src_noncomponent_links( self._uri, self._suite )
+                for url in urls:
+                    path = "%s/" % ( self._suite )
+                    links[ url ] = path
 
         else:
             raise AttributeError("No such type %s" % (self._type ) )
 
         return links
+
+
 
     def get_arch( self ):
         return self._arch.copy()
@@ -315,6 +330,11 @@ class MirrorConfig( object ):
         if fields[1] in self._config and len( fields ) == 3:
             if aptmirror.utils.is_type( self._config[ fields[1] ], "int" ):
                 self._config[ fields[1] ] = int( fields[2] )
+            if aptmirror.utils.is_type( self._config[ fields[1] ], "boolean" ):
+                if int( fields[2] ) == 0:
+                    self._config[ fields[1] ] = False
+                elif int( fields[2] ) == 1:
+                    self._config[ fields[1] ] = True
             else:
                 self._config[ fields[1] ] = fields[2]
 
@@ -343,6 +363,12 @@ class MirrorConfig( object ):
 
     def get_config( self ):
         return self._config.copy()
+
+    def get( self, key ):
+        if key not in self._config:
+            raise AttributeError("No such configuration key %s" % ( key ) )
+        return self._config[ key ]
+
 
     def get_mirrors( self ):
         return self._mirrors.copy()

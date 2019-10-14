@@ -17,6 +17,6 @@ if __name__ == "__main__":
         try:
             aptmirror.runner.MainRunner( sys.argv ).run()
         except Exception as e:
-            pprint( e )
+            raise
     else:
         print_help()

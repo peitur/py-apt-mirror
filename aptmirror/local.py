@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-    Handles checksum calcualtions
+    Handles lcoal util file operations operations
 """
 
 import os, re, sys

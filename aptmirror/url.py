@@ -6,7 +6,7 @@ import urllib
 def download_file_wget( source, target, **options ):
     pass
 
-def download_file( url_filename, local_filename,proxy={}, **opt ):
+def download_file( url_filename, local_filename, proxy={}, **opt ):
 
     x_size = 0
     l_size = 0
@@ -15,6 +15,7 @@ def download_file( url_filename, local_filename,proxy={}, **opt ):
     overwrite = False
     timeout = 10
     debug = False
+    check_certificate = True
 
     proxies = urllib.request.getproxies()
 
@@ -25,10 +26,13 @@ def download_file( url_filename, local_filename,proxy={}, **opt ):
     if 'overwrite' in opt and opt['overwrite'] in (True,False):
         overwrite = opt['overwrite']
 
+    if 'check_certificate' in opt and opt['no_check_certificate'] in (True, False):
+        check_certificate = !opt['no_check_certificate']
+
     if Path( local_filename ).exists():
         l_size = Path( local_filename ).stat().st_size
 
-    r = requests.get( url_filename, timeout=timeout, stream=True, proxies=proxies )
+    r = requests.get( url_filename, timeout=timeout, stream=True, proxies=proxies, verify=check_certificate )
     if 'content-length' in r.headers:
         r_size = r.headers['content-length']
 

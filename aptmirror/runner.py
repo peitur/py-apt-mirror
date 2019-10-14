@@ -4,6 +4,9 @@ import os, re, sys
 from pprint import pprint
 
 import aptmirror.mirror
+import aptmirror.store
+import aptmirror.local
+
 """
     This file defines the external command execution,
     input from user via cli and the actual excution.
@@ -18,6 +21,7 @@ class MainRunner( object ):
         self._args = args
         self._debug = False
         self._mirror_config = None
+        self._store = None
 
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
@@ -28,12 +32,13 @@ class MainRunner( object ):
         if len( self._args ) > 1:
             self._mirror_config = aptmirror.mirror.MirrorConfig( self._args[1] )
             pprint( self._mirror_config.get_config() )
-            pprint( self._mirror_config.get_mirrors() )
-            for m in self._mirror_config.get_mirrors():
-                pprint( m.get_index_links() )
+
+            self._store = aptmirror.store.LocalRepo( self._mirror_config.get( "var_path" ) )
+            self._store.create_structure()
+
         else:
             raise AttributeError("No input file")
-            
+
     def get_options( ):
         return "<mirror.list>"
 
