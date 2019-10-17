@@ -248,27 +248,23 @@ class MirrorItem( object ):
                 if len( self._components ) > 0:
                     urls = generate_binary_component_links( a, self._uri, self._suite, self._components )
                     for url in urls:
-                        path = "%s/%s" % ( self._suite )
-                        links[ url ] = path
+                        links[ url ] = dict()
                 else:
                     urls = generate_binary_noncomponent_links( a, self._uri, self._suite )
                     for url in urls:
-                        path = "%s/" % ( self._suite )
-                        links[ url ] = path
+                        links[ url ] = dict()
 
 
         elif self._type == "source":
             if len( self._components ) > 0:
                 urls = generate_src_component_links( self._uri, self._suite, self._components )
                 for url in urls:
-                    path = "%s/" % ( self._suite )
-                    links[ url ] = path
+                    links[ url ] = dict()
 
             else:
                 urls = generate_src_noncomponent_links( self._uri, self._suite )
                 for url in urls:
-                    path = "%s/" % ( self._suite )
-                    links[ url ] = path
+                    links[ url ] = dict()
 
         else:
             raise AttributeError("No such type %s" % (self._type ) )
@@ -341,7 +337,7 @@ class MirrorConfig( object ):
 
 
     def _parse( self ):
-        data = aptmirror.local.load_file( self._filename )
+        data = aptmirror.mirror.local.load_file( self._filename )
         for line in data:
             if len( line ) > 0:
                 fields = [ x.rstrip().lstrip() for x in re.split( r"\s+", line ) ]

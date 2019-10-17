@@ -30,10 +30,12 @@ class MainRunner( object ):
     def run( self ):
 
         if len( self._args ) > 1:
-            self._mirror_config = aptmirror.mirror..config.MirrorConfig( self._args[1] )
+            self._mirror_config = aptmirror.mirror.config.MirrorConfig( self._args[1] )
             pprint( self._mirror_config.get_config() )
 
-            self._store = aptmirror.mirror.store.LocalRepo( self._mirror_config.get( "var_path" ) )
+            for mi in self._mirror_config.get_mirrors():
+                pprint( mi.get_index_links() )
+            self._store = aptmirror.mirror.store.LocalMirrorRepo( self._mirror_config.get( "var_path" ) )
             self._store.create_structure()
 
         else:
