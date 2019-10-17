@@ -5,6 +5,8 @@
 
 import os, re, sys
 import pathlib
+import datetime
+import time
 
 from pprint import pprint
 
@@ -12,8 +14,9 @@ LOCK_FILENAME=".lock"
 
 class MirrorLock( object ):
 
-    def __init__( self, varpath, lockfile=LOCK_FILENAME ):
+    def __init__( self, varpath, lockfile=LOCK_FILENAME, **opt ):
         self._debug = False
+        self._options = opt
         self._path = varpath
         self._filename = lockfile
         self._lockfile = "%s/%s" % ( self._path, self._filename )
@@ -33,7 +36,13 @@ class MirrorLock( object ):
         return pathlib.Path( self._lockfile ).exists()
 
     def lock_age( self ):
-        pass
+        if not self.is_locked():
+            raise RuntimeError("Lock missing: %s" % ( self._lockfile ) )
+
+        return int( ( datetime.datetime.now() - datetime.datetime.fromtimestamp( pathlib.Path( self._lockfile ).stat().st_mtime ) ).total_seconds() )
+
+
+
 
 if __name__ == "__main__":
     pass
