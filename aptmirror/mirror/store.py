@@ -13,7 +13,7 @@ from pprint import pprint
 
 REPO_FILES=("ALL", "NEW", "MD5", "SHA1", "SHA256")
 
-class LocalRepo( object ):
+class LocalMirrorRepo( object ):
 
     def __init__( self, path, **opt ):
         self._debug = False
@@ -30,7 +30,7 @@ class LocalRepo( object ):
             pprint( p )
 
 
-class LocalStore( object ):
+class LocalMirrorStore( object ):
 
     def __init__( self, path, **opt ):
         pass

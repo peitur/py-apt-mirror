@@ -3,9 +3,9 @@
 import os, re, sys
 from pprint import pprint
 
-import aptmirror.mirror
-import aptmirror.store
-import aptmirror.local
+import aptmirror.mirror.config
+import aptmirror.mirror.store
+import aptmirror.mirror.local
 
 """
     This file defines the external command execution,
@@ -30,10 +30,10 @@ class MainRunner( object ):
     def run( self ):
 
         if len( self._args ) > 1:
-            self._mirror_config = aptmirror.mirror.MirrorConfig( self._args[1] )
+            self._mirror_config = aptmirror.mirror..config.MirrorConfig( self._args[1] )
             pprint( self._mirror_config.get_config() )
 
-            self._store = aptmirror.store.LocalRepo( self._mirror_config.get( "var_path" ) )
+            self._store = aptmirror.mirror.store.LocalRepo( self._mirror_config.get( "var_path" ) )
             self._store.create_structure()
 
         else:

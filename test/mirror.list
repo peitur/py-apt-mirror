@@ -1,4 +1,4 @@
-set base_path         /var/spool/apt-mirror
+set base_path         test/var/spool/apt-mirror
 set mirror_path       $base_path/mirror
 set skel_path         $base_path/skel
 set var_path          $base_path/var

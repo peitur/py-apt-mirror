@@ -6,14 +6,15 @@ import json
 
 import aptmirror.validate
 import aptmirror.utils
-import aptmirror.local
 import aptmirror.checksum
 import aptmirror.url
+
+import aptmirror.mirror.local
 
 
 from pprint import pprint
 
-class SyncMirror( object ):
+class MirrorSync( object ):
 
     def __init__(self, mconf, **opt ):
         self._options = opt

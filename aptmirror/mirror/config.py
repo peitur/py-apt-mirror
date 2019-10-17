@@ -6,8 +6,9 @@ import json
 
 import aptmirror.validate
 import aptmirror.utils
-import aptmirror.local
 import aptmirror.command
+
+import aptmirror.mirror.local
 
 from pprint import pprint
 
