@@ -38,72 +38,6 @@ DEFAULT_CONFIG={
 
 DEFAULT_ARCH="amd64"
 
-def generate_src_component_links( uri, distribution, components=list(), **opt ):
-    links = list()
-
-    url = "%s/dists/%s" % ( uri, distribution )
-
-    links.append( "%s/InRelease" % ( url ) )
-    links.append( "%s/Release" % ( url ) )
-    links.append( "%s/Release.gpg" % ( url ) )
-
-    for comp in components:
-        links.append( "%s/%s/source/Release" % ( url, comp ) )
-        links.append( "%s/%s/source/Sources.gz" % ( url, comp ) )
-        links.append( "%s/%s/source/Sources.bz2" % ( url, comp ) )
-        links.append( "%s/%s/source/Sources.xz" % ( url, comp ) )
-
-    return links.copy()
-
-
-def generate_src_noncomponent_links( uri, distribution, **opt ):
-    links = list()
-    links.append( "%s/%s/Release" % ( uri, distribution ) )
-    links.append( "%s/%s/Release.gpg" % ( uri, distribution ) )
-    links.append( "%s/%s/Sources.gz" % ( uri, distribution ) )
-    links.append( "%s/%s/Sources.bz2" % ( uri, distribution ) )
-    links.append( "%s/%s/Sources.xz" % ( uri, distribution ) )
-    return links.copy()
-
-
-def generate_binary_component_links( arch, uri, distribution, components=list(), **opt ):
-    links = list()
-    contents = False
-
-    if 'contents' in opt and opt['contents'] in (True, False):
-        contents = opt['contents']
-
-    url = "%s/dists/%s" % ( uri, distribution )
-
-    links.append( "%s/InRelease" % ( url ) )
-    links.append( "%s/Release" % ( url ) )
-    links.append( "%s/Release.gpg" % ( url ) )
-
-    if contents:
-        links.append( "%s/Contents-%s.gz" % ( url, arch ) )
-        links.append( "%s/Contents-%s.bz2" % ( url, arch ) )
-        links.append( "%s/Contents-%s.xz" % ( url, arch ) )
-
-    for comp in components:
-        links.append( "%s/%s/binary-%s/Release" % ( url, comp, arch ) )
-        links.append( "%s/%s/i18n/Index" % ( url, comp ) )
-
-        if contents:
-            links.append( "%s/%s/Contents-%s.gz" % ( url, comp, arch ) )
-            links.append( "%s/%s/Contents-%s.bz2" % ( url, comp, arch ) )
-            links.append( "%s/%s/Contents-%s.xz" % ( url, comp, arch ) )
-
-    return links
-
-def generate_binary_noncomponent_links( uri, distribution, **opt ):
-    links = list()
-    links.append( "%s/%s/Release" % ( uri, distribution ) )
-    links.append( "%s/%s/Release.gpg" % ( uri, distribution ) )
-    return links.copy()
-
-
-
-
 
 class MirrorCleanItem( object ):
     def __init__( self, line, **opt ):
@@ -232,40 +166,6 @@ class MirrorItem( object ):
 
         return self.__dict__()
 
-    def get_index_links( self ):
-        links = dict()
-        data = self._parse_mirror()
-
-        if self._type == "binary":
-            for a in self._arch:
-
-                if len( self._components ) > 0:
-                    urls = generate_binary_component_links( a, self._uri, self._suite, self._components )
-                    for url in urls:
-                        links[ url ] = dict()
-                else:
-                    urls = generate_binary_noncomponent_links( a, self._uri, self._suite )
-                    for url in urls:
-                        links[ url ] = dict()
-
-
-        elif self._type == "source":
-            if len( self._components ) > 0:
-                urls = generate_src_component_links( self._uri, self._suite, self._components )
-                for url in urls:
-                    links[ url ] = dict()
-
-            else:
-                urls = generate_src_noncomponent_links( self._uri, self._suite )
-                for url in urls:
-                    links[ url ] = dict()
-
-        else:
-            raise AttributeError("No such type %s" % (self._type ) )
-
-        return links
-
-
 
     def get_arch( self ):
         return self._arch.copy()
@@ -360,9 +260,6 @@ class MirrorConfig( object ):
             raise AttributeError("No such configuration key %s" % ( key ) )
         return self._config[ key ]
 
-
-    def get_mirrors( self ):
-        return self._mirrors.copy()
 
     def run_postmirror( self ):
         pass

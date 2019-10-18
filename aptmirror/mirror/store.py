@@ -11,9 +11,9 @@ import pathlib
 
 from pprint import pprint
 
-REPO_FILES=("ALL", "NEW", "MD5", "SHA1", "SHA256")
+REGISTRY_FILES=("ALL", "NEW", "MD5", "SHA1", "SHA256")
 
-class LocalMirrorRepo( object ):
+class LocalMirrorRegistry( object ):
 
     def __init__( self, path, **opt ):
         self._debug = False
@@ -25,12 +25,12 @@ class LocalMirrorRepo( object ):
         if not self._path.exists():
             self._path.mkdir( mode=0o755, parents=True )
 
-        for f in REPO_FILES:
+        for f in REGISTRY_FILES:
             p = pathlib.Path( "%s/%s" % ( self._path, f ) )
             pprint( p )
 
 
-class LocalMirrorStore( object ):
+class LocalMirrorRepo( object ):
 
     def __init__( self, path, **opt ):
         pass
