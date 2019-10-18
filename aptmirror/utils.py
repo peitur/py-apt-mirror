@@ -4,6 +4,7 @@ import os, re, sys
 import tarfile, zipfile, bz2
 import random, string
 import json
+import pathlib
 
 from pprint import pprint
 
@@ -12,61 +13,43 @@ def is_type( o, t ):
         return True
     return False
 
-def temp_dir( root="/tmp", prefix="py" ):
-    return "%s/%s_%s" % ( root, prefix, random_string( 6 )  )
-
 def random_string( length ):
     return ''.join(random.SystemRandom().choice( string.ascii_lowercase + string.ascii_uppercase + string.digits) for _ in range( length ))
 
 
-def unpack_gz( filename,  ):
-    tar = tarfile.open( filename, "r:gz")
-    for tarinfo in tar:
-        if tarinfo.isreg():
-            print("%s a regular file." % (tarinfo) )
-        elif tarinfo.isdir():
-            print("%s a directory." % (tarinfo) )
+def size_htob( s ):
+    rx = re.compile( r"([0-9\.]+)([bkMG]*)[bB]*" )
+    m = rx.match( s )
+    nbytes = None
+
+    if m:
+        amount = m.group(1)
+        unit = m.group(2)
+
+        if unit == "k":
+            nbytes = int( float( amount ) * 1024 )
+        elif unit == "M":
+            nbytes = int( float( amount ) * 1024 * 1024 )
+        elif unit == "G":
+            nbytes = int( float( amount ) * 1024 * 1024 * 1024 )
         else:
-            print("%s something else." % (tarinfo) )
-    tar.close()
+            if re.match( r"[0-9]+\.[0-9]+", amount ):
+                raise AttributeError("Bad byte format. Got float value!")
+            nbytes = int( amount )
+    return int( nbytes )
 
-def _read_text( filename ):
-    result = list()
-    try:
-        fd = open( filename, "r" )
-        for line in fd.readlines():
-            if not re.match(r"\s*#.*", line ):
-                result.append( line.lstrip().rstrip() )
-        return result
-    except Exception as e:
-        print("ERROR Reading %s: %s" % ( filename, e ))
 
-    return result
+def size_btoh( s ):
 
-def _read_json( filename ):
-    return json.load( filename )
+    units = { "": 1, "k": 1024, "M": 1024 * 1024, "G": 1024 * 1024 * 1024  }
 
-def load_file( filename ):
-    filesplit = re.split( r"\.", filename )
-    if filesplit[-1] in ( "json" ):
-        return _read_json( filename )
-    else:
-        return _read_text( filename )
+    x = int( s )
+    for i in units:
+        c = float( x / units[i] )
+        if c < 500:
+            return "%s%s" % ( c, i )
+    return x
 
-def _write_json( filename, data ):
-    return _write_text( filename, json.dumps( data, indent=2, sort_keys=True ) )
-
-def _write_text( filename, data ):
-    fd = open( filename, "w" )
-    fd.write( str( data ) )
-    fd.close()
-
-def write_file( filename, data ):
-    filesplit = re.split( "\.", filename )
-    if filesplit[-1] in ( "json" ):
-        return _write_json( filename, data )
-    else:
-        return _write_text( filename, data )
 
 if __name__ == "__main__":
     pass

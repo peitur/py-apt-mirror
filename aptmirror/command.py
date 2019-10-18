@@ -30,7 +30,7 @@ def run( cmd, **opt ):
 
 
 
-def run_yield( cmd, **opt ):
+def run_iter( cmd, **opt ):
         debug = False
         if 'debug' in opt and opt['debug'] in (True, False):
             debug = opt['debug']
