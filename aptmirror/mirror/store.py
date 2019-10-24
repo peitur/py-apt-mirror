@@ -34,3 +34,6 @@ class LocalMirrorRepo( object ):
 
     def __init__( self, path, **opt ):
         pass
+
+if __name__ == "__main__":
+    pass

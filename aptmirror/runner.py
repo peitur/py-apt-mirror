@@ -3,9 +3,10 @@
 import os, re, sys
 from pprint import pprint
 
-import aptmirror.mirror.config
-import aptmirror.mirror.store
-import aptmirror.mirror.local
+import aptmirror.sync.config
+import aptmirror.sync.lock
+import aptmirror.sync.store
+
 
 """
     This file defines the external command execution,
@@ -29,17 +30,24 @@ class MainRunner( object ):
 
     def run( self ):
 
-        if len( self._args ) > 1:
-            self._mirror_config = aptmirror.mirror.config.MirrorConfig( self._args[1] )
-            pprint( self._mirror_config.get_config() )
+        if len( self._args ) == 1:
+            raise ArgumentError("Missing configurationh file")
 
-            for mi in self._mirror_config.get_mirrors():
-                pprint( mi.get_index_links() )
-            self._store = aptmirror.mirror.store.LocalMirrorRepo( self._mirror_config.get( "var_path" ) )
-            self._store.create_structure()
+        self._mirror_config = aptmirror.sync.config.MirrorConfig( self._args[1] )
 
-        else:
-            raise AttributeError("No input file")
+        store = aptmirror.sync.store.LocalMirrorRepo( self._mirror_config.get( "var_path" ) )
+        if not store.exists():
+            store.create()
+
+        lock = aptmirror.sync.lock.MirrorLock( self._mirror_config.get( "var_path" ) )
+        print("# Starting sync of '%s', lockfile: '%s'" % ( self._mirror_config.filename() , lock.lockfile()) )
+        if lock.is_locked( ):
+            raise OSError("Mirror already locked for other task: %s" % ( lock.lockfile() ) )
+        lock.lock()
+
+
+
+        lock.unlock()
 
     def get_options( ):
         return "<mirror.list>"

@@ -185,6 +185,17 @@ class MirrorItem( object ):
     def get_type( self ):
         return self._type
 
+    def type_source( self ):
+        if self._type == "source":
+            return True
+        return False
+
+    def type_binary( self ):
+        if self._type == "binary":
+            return True
+        return False
+
+
     def get_fields( self ):
         return self._fields()
 
@@ -251,6 +262,9 @@ class MirrorConfig( object ):
             for k2 in self._config:
                 if aptmirror.utils.is_type( self._config[k1], "str" ) and aptmirror.utils.is_type( self._config[k2], "str" ):
                     self._config[k2] = re.sub( re.escape(k), self._config[k1], self._config[k2] )
+
+    def filename( self ):
+        return self._filename
 
     def get_config( self ):
         return self._config.copy()

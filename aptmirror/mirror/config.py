@@ -352,6 +352,7 @@ class MirrorConfig( object ):
                 if aptmirror.utils.is_type( self._config[k1], "str" ) and aptmirror.utils.is_type( self._config[k2], "str" ):
                     self._config[k2] = re.sub( re.escape(k), self._config[k1], self._config[k2] )
 
+
     def get_config( self ):
         return self._config.copy()
 
