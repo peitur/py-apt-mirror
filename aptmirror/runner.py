@@ -6,7 +6,7 @@ from pprint import pprint
 import aptmirror.sync.config
 import aptmirror.sync.lock
 import aptmirror.sync.store
-
+import aptmirror.sync.release
 
 """
     This file defines the external command execution,
@@ -19,6 +19,7 @@ OPTIONS={}
 class MainRunner( object ):
 
     def __init__( self, args, **opt ):
+        self._opt = opt
         self._args = args
         self._debug = False
         self._mirror_config = None
@@ -45,9 +46,22 @@ class MainRunner( object ):
             raise OSError("Mirror already locked for other task: %s" % ( lock.lockfile() ) )
         lock.lock()
 
+        try:
+            for c in self._mirror_config.get_mirrors():
+                arch = c.get_arch()
+                uri = c.get_uri()
+                suite = c.get_suite()
+                comps = c.get_components()
 
+                print("Download to %s" % ( self._mirror_config.get( "mirror_path" ) ) )
+                for a in arch:
+                    rel = aptmirror.sync.release.MirrorReleases( a, uri, suite, comps, **self._opt )
+                    rel.download( self._mirror_config.get( "mirror_path" ) )
 
-        lock.unlock()
+        except Exception as e:
+            raise e
+        finally:
+            lock.unlock()
 
     def get_options( ):
         return "<mirror.list>"

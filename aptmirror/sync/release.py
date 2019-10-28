@@ -4,8 +4,8 @@ import os, re, sys
 import pathlib
 import json
 
-import aptmirror.mirror.local
-
+import aptmirror.local
+import aptmirror.url
 
 from pprint import pprint
 
@@ -24,11 +24,31 @@ class MirrorReleaseItem( object ):
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
 
-    def _parse( self ):
-        pass
+
+    def _parse( self, fname = None ):
+        if not fname:
+            fname = self._path
+
+        data = aptmirror.local.load_file( fname )
+        for d in data:
+            flds = [ x.lstrip().rstrip() for x in re.split( r"\:", d ) ]
+            self._info[ flds[0].lower() ] = flds[1].lower()
 
     def download( self, to ):
-        pass
+
+        try:
+            pfields = re.split( r"/+", self._path )
+            lfile = pfields.pop(-1)
+            lpath = "%s/%s/%s" % ( to, "/".join( pfields ), lfile )
+            pathlib.Path( "%s/%s" % (to,  "/".join( pfields ) ) ).mkdir( parents=True, exist_ok=True )
+            print( "Download %s to %s" % ( self._remote_file, lpath ) )
+            aptmirror.url.download_file( self._remote_file, lpath )
+
+        except Exception as e:
+            pprint( e )
+
+    def info( self ):
+        return self._info.copy()
 
     def get( self, k ):
         if not self._info:
@@ -63,17 +83,15 @@ class MirrorReleases( object ):
         if 'debug' in opt and opt['debug'] in (True, False):
             self._debug = opt['debug']
 
+        self._release_items()
+
     def _release_items( self ):
         for f in self._files:
             self._items.append( MirrorReleaseItem( self._url, f ) )
 
         for c in self._components:
-            self._items.append( MirrorReleaseItem( self._url, "binary-%s/%s" % (  self._arch, "Release") ))
-            self._items.append( MirrorReleaseItem( self._url, "source/%s" % ( "Release" ) ))
-
-
-    def append_item( self, prefix, fname = "Release" ):
-        self._items.append( MirrorReleaseItem( self._url, "%s/%s" % (  prefix, fname ) ) )
+            self._items.append( MirrorReleaseItem( self._url, "%s/binary-%s/%s" % (  c, self._arch, "Release") ))
+            self._items.append( MirrorReleaseItem( self._url, "%s/source/%s" % ( c, "Release" ) ))
 
     def url( self ):
         return self._url

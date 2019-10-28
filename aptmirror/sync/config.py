@@ -8,7 +8,7 @@ import aptmirror.validate
 import aptmirror.utils
 import aptmirror.command
 
-import aptmirror.mirror.local
+import aptmirror.local
 
 from pprint import pprint
 
@@ -242,7 +242,7 @@ class MirrorConfig( object ):
 
 
     def _parse( self ):
-        data = aptmirror.mirror.local.load_file( self._filename )
+        data = aptmirror.local.load_file( self._filename )
         for line in data:
             if len( line ) > 0:
                 fields = [ x.rstrip().lstrip() for x in re.split( r"\s+", line ) ]
@@ -274,6 +274,8 @@ class MirrorConfig( object ):
             raise AttributeError("No such configuration key %s" % ( key ) )
         return self._config[ key ]
 
+    def get_mirrors( self ):
+        return self._mirrors.copy()
 
     def run_postmirror( self ):
         pass
