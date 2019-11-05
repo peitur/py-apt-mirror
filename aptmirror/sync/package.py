@@ -11,7 +11,7 @@ from pprint import pprint
 
 class MirrorPackageItem( object ):
 
-    def __init__(self, arch, uri, distribution, components=list(), **opt ):
+    def __init__( self, arch, uri, distribution, components=list(), **opt ):
         self._options = opt
         self._debug = False
 

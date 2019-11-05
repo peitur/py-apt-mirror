@@ -37,6 +37,7 @@ class MirrorReleaseItem( object ):
     def download( self, to ):
 
         try:
+            
             pfields = re.split( r"/+", self._path )
             lfile = pfields.pop(-1)
             lpath = "%s/%s/%s" % ( to, "/".join( pfields ), lfile )
@@ -46,6 +47,8 @@ class MirrorReleaseItem( object ):
 
         except Exception as e:
             pprint( e )
+            return False
+        return True
 
     def info( self ):
         return self._info.copy()
