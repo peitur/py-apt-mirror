@@ -43,7 +43,7 @@ class MirrorTranslateItem( object ):
         return True
 
     def info( self ):
-        pass
+        return self._info.copy()
 
     def url( self ):
         return self._remote_file
@@ -85,7 +85,7 @@ class MirrorTranslateIndex( object ):
         return True
 
     def info( self ):
-        pass
+        return self._info.copy()
 
     def url( self ):
         return self._remote_file
