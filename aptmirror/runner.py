@@ -7,6 +7,8 @@ import aptmirror.sync.config
 import aptmirror.sync.lock
 import aptmirror.sync.store
 import aptmirror.sync.release
+import aptmirror.sync.translate
+
 
 """
     This file defines the external command execution,
@@ -57,6 +59,10 @@ class MainRunner( object ):
                 for a in arch:
                     rel = aptmirror.sync.release.MirrorReleases( a, uri, suite, comps, **self._opt )
                     rel.download( self._mirror_config.get( "mirror_path" ) )
+
+                trnslt = aptmirror.sync.translate.MirrorTranslate( uri, suite, comps, **self._opt )
+                trnslt.download( self._mirror_config.get( "mirror_path" ) )
+
 
         except Exception as e:
             raise e
