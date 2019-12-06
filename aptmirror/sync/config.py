@@ -158,7 +158,7 @@ class MirrorItem( object ):
 
         self._arch = [ self._parse_mirror_arch( fields.pop(0) ) ]
         if len( self._options ) > 0:
-            self._arch = self._options['arch']
+            self._arch = [ self._options['arch'] ]
 
         self._uri = fields.pop(0)
         self._suite = fields.pop(0)
