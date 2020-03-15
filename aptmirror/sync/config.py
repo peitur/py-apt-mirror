@@ -17,7 +17,7 @@ from pprint import pprint
 """
 
 DEFAULT_CONFIG={
-    "nthreads": 20,
+    "nthreads": 5,
     "limit_rate": '100m',
     "base_path": '/var/spool/apt-mirror',
     "mirror_path": '$base_path/mirror',
