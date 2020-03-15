@@ -3,6 +3,9 @@
 import os, re, sys
 import logging
 
+import aptmirror.frmt as frmt
+
+
 """
     Handles output stuff
 """

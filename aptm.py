@@ -5,6 +5,7 @@ import os, re, sys
 from pprint import pprint
 
 import aptmirror
+import aptmirror.frmt as frmt
 import aptmirror.runner
 
 
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         try:
             aptmirror.runner.MainRunner( sys.argv ).run()
         except Exception as e:
-            pprint(e)
+            print("ERROR: %s%s%s" % ( frmt.Quick.fail(), e, frmt.Quick.nc() ))
             raise e
     else:
         print_help()

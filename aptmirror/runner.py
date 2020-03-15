@@ -3,6 +3,8 @@
 import os, re, sys
 from pprint import pprint
 
+import aptmirror.frmt as frmt
+
 import aptmirror.sync.config
 import aptmirror.sync.lock
 import aptmirror.sync.store
@@ -43,7 +45,7 @@ class MainRunner( object ):
             store.create()
 
         lock = aptmirror.sync.lock.MirrorLock( self._mirror_config.get( "var_path" ) )
-        print("# Starting sync of '%s', lockfile: '%s'" % ( self._mirror_config.filename() , lock.lockfile()) )
+        print("[ ] Starting sync of '%s', lockfile: '%s'" % ( self._mirror_config.filename() , lock.lockfile()) )
         if lock.is_locked( ):
             raise OSError("Mirror already locked for other task: %s" % ( lock.lockfile() ) )
         lock.lock()
