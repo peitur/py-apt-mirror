@@ -5,7 +5,7 @@ import tarfile, zipfile, bz2
 import random, string
 import json
 import pathlib
-
+import stat
 from pprint import pprint
 
 def is_type( o, t ):
@@ -50,6 +50,19 @@ def size_btoh( s ):
             return "%s%s" % ( c, i )
     return x
 
+def file_stat( filename ):
+    return pathlib.Path( filename ).stat()
+
+def file_size( filename ):
+    return file_stat( filename ).st_size
+
+def file_uid( filename ):
+    return file_stat( filename ).st_uid
+
+def file_mode( filename ):
+    return oct(stat.S_IMODE( pathlib.Path( filename ).stat().st_mode))
 
 if __name__ == "__main__":
-    pass
+    pprint( file_mode( "/etc/passwd" ) )
+    pprint( file_size( "/etc/passwd" ) )
+    pprint( file_uid( "/etc/passwd" ) )
