@@ -60,7 +60,7 @@ def file_uid( filename ):
     return file_stat( filename ).st_uid
 
 def file_mode( filename ):
-    return oct(stat.S_IMODE( pathlib.Path( filename ).stat().st_mode))
+    return re.split( "o", oct(stat.S_IMODE( pathlib.Path( filename ).stat().st_mode)) )[-1]
 
 if __name__ == "__main__":
     pprint( file_mode( "/etc/passwd" ) )
